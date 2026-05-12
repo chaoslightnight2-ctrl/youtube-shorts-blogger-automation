@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 from typing import Any
 
@@ -22,11 +23,19 @@ class BloggerPostResult:
 
 
 class BloggerPublisher:
-    def __init__(self, blog_id: str | None, client_secret_file: str, token_file: str, base_dir: Path | str | None = None):
+    def __init__(
+        self,
+        blog_id: str | None,
+        client_secret_file: str,
+        token_file: str,
+        base_dir: Path | str | None = None,
+        refresh_token: str | None = None,
+    ):
         self.blog_id = blog_id
         base = Path(base_dir) if base_dir else Path.cwd()
         self.client_secret_file = self._resolve_path(client_secret_file, base)
         self.token_file = self._resolve_path(token_file, base)
+        self.refresh_token = refresh_token
         self.service = None
 
     @staticmethod
@@ -36,7 +45,10 @@ class BloggerPublisher:
 
     def authenticate(self):
         creds = None
-        if self.token_file.exists():
+        if self.refresh_token:
+            creds = self._credentials_from_refresh_token()
+            creds.refresh(Request())
+        elif self.token_file.exists():
             creds = Credentials.from_authorized_user_file(str(self.token_file), SCOPES)
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -48,6 +60,28 @@ class BloggerPublisher:
             self.token_file.write_text(creds.to_json(), encoding="utf-8")
         self.service = build("blogger", "v3", credentials=creds)
         return self.service
+
+    def _credentials_from_refresh_token(self) -> Credentials:
+        client_info = self._load_client_info()
+        return Credentials(
+            token=None,
+            refresh_token=self.refresh_token,
+            token_uri=client_info.get("token_uri", "https://oauth2.googleapis.com/token"),
+            client_id=client_info["client_id"],
+            client_secret=client_info["client_secret"],
+            scopes=SCOPES,
+        )
+
+    def _load_client_info(self) -> dict[str, str]:
+        if not self.client_secret_file.exists():
+            raise FileNotFoundError(f"Google client secret bulunamadi: {self.client_secret_file}")
+        data = json.loads(self.client_secret_file.read_text(encoding="utf-8"))
+        client_info = data.get("installed") or data.get("web") or data
+        required = ["client_id", "client_secret"]
+        missing = [key for key in required if not client_info.get(key)]
+        if missing:
+            raise RuntimeError(f"Google client JSON eksik alan iceriyor: {', '.join(missing)}")
+        return client_info
 
     def create_post(self, title: str, html_content: str, labels: list[str], is_draft: bool = True) -> BloggerPostResult:
         if not self.blog_id:
