@@ -65,7 +65,7 @@ def test_groq() -> int:
 
 def test_blogger_auth() -> int:
     cfg, _logger, _db, _groq = build_services()
-    publisher = BloggerPublisher(cfg.blogger_blog_id, cfg.google_client_secret_file, cfg.google_token_file, BASE_DIR)
+    publisher = BloggerPublisher(cfg.blogger_blog_id, cfg.google_client_secret_file, cfg.google_token_file, BASE_DIR, cfg.google_refresh_token)
     try:
         publisher.authenticate()
         print("Blogger OAuth basarili. token.json hazir.")
@@ -140,7 +140,7 @@ def run_pipeline(no_blogger: bool = False, publish_now: bool = False) -> int:
         blogger_result = {"status": "skipped", "post_id": None, "url": None, "raw_response": {}}
         if not no_blogger:
             try:
-                publisher = BloggerPublisher(cfg.blogger_blog_id, cfg.google_client_secret_file, cfg.google_token_file, BASE_DIR)
+                publisher = BloggerPublisher(cfg.blogger_blog_id, cfg.google_client_secret_file, cfg.google_token_file, BASE_DIR, cfg.google_refresh_token)
                 result = publisher.create_post(f"{problem} Cozumu", html_content, cfg.default_labels, is_draft=not publish_now)
                 blogger_result = {"status": result.status, "post_id": result.post_id, "url": result.url, "raw_response": result.raw_response}
                 logger.info("Blogger post: id=%s url=%s", result.post_id, result.url)
