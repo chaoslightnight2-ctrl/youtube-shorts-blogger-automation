@@ -29,6 +29,7 @@ class AppConfig:
     blogger_blog_id: str | None = None
     google_client_secret_file: str = "client_secret.json"
     google_token_file: str = "token.json"
+    google_refresh_token: str | None = None
 
 
 def load_config(base_dir: Path | str = ".") -> AppConfig:
@@ -45,5 +46,6 @@ def load_config(base_dir: Path | str = ".") -> AppConfig:
     cfg.blogger_blog_id = os.getenv("BLOGGER_BLOG_ID")
     cfg.google_client_secret_file = os.getenv("GOOGLE_CLIENT_SECRET_FILE", cfg.google_client_secret_file)
     cfg.google_token_file = os.getenv("GOOGLE_TOKEN_FILE", cfg.google_token_file)
+    cfg.google_refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
     cfg.blogger_publish_mode = os.getenv("BLOGGER_PUBLISH_MODE", cfg.blogger_publish_mode)
     return cfg
