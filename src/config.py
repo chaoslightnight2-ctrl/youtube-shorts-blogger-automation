@@ -26,10 +26,16 @@ class AppConfig:
     groq_api_key: str | None = None
     groq_model: str = "llama-3.1-8b-instant"
     groq_base_url: str = "https://api.groq.com/openai/v1"
+    pexels_api_key: str | None = None
     blogger_blog_id: str | None = None
     google_client_secret_file: str = "client_secret.json"
     google_token_file: str = "token.json"
     google_refresh_token: str | None = None
+    youtube_refresh_token: str | None = None
+    youtube_category_id: str = "28"
+    voice: str = "tr-TR-AhmetNeural"
+    voice_rate: str = "+8%"
+    voice_pitch: str = "-3Hz"
 
 
 def load_config(base_dir: Path | str = ".") -> AppConfig:
@@ -43,9 +49,15 @@ def load_config(base_dir: Path | str = ".") -> AppConfig:
     cfg.groq_api_key = os.getenv("GROQ_API_KEY")
     cfg.groq_model = os.getenv("GROQ_MODEL", cfg.groq_model)
     cfg.groq_base_url = os.getenv("GROQ_BASE_URL", cfg.groq_base_url)
+    cfg.pexels_api_key = os.getenv("PEXELS_API_KEY")
     cfg.blogger_blog_id = os.getenv("BLOGGER_BLOG_ID")
     cfg.google_client_secret_file = os.getenv("GOOGLE_CLIENT_SECRET_FILE", cfg.google_client_secret_file)
     cfg.google_token_file = os.getenv("GOOGLE_TOKEN_FILE", cfg.google_token_file)
     cfg.google_refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
+    cfg.youtube_refresh_token = os.getenv("YOUTUBE_REFRESH_TOKEN", cfg.google_refresh_token or "")
+    cfg.youtube_category_id = os.getenv("YOUTUBE_CATEGORY_ID", cfg.youtube_category_id)
+    cfg.voice = os.getenv("VOICE", cfg.voice)
+    cfg.voice_rate = os.getenv("VOICE_RATE", cfg.voice_rate)
+    cfg.voice_pitch = os.getenv("VOICE_PITCH", cfg.voice_pitch)
     cfg.blogger_publish_mode = os.getenv("BLOGGER_PUBLISH_MODE", cfg.blogger_publish_mode)
     return cfg
