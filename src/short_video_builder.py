@@ -17,18 +17,27 @@ STROKE_WIDTH = 4
 FONT_URL = "https://github.com/google/fonts/raw/main/ofl/montserrat/static/Montserrat-Bold.ttf"
 
 BACKGROUND_HINTS = {
-    "instagram": ["phone social media", "smartphone app", "social media phone"],
-    "youtube": ["youtube creator setup", "phone video recording", "content creator desk"],
-    "shorts": ["vertical video phone", "content creator desk", "phone video recording"],
-    "capcut": ["video editing laptop", "creator editing video", "phone video editing"],
-    "discord": ["gaming setup", "headset microphone", "computer chat"],
-    "xiaomi": ["smartphone close up", "wifi router", "phone settings"],
-    "iphone": ["iphone charging", "smartphone close up", "phone settings"],
-    "google play": ["android phone app", "smartphone close up", "phone download"],
-    "papara": ["contactless payment phone", "online payment", "credit card phone"],
-    "nays": ["contactless payment phone", "online payment", "credit card phone"],
-    "odeme": ["contactless payment phone", "online payment", "credit card phone"],
-    "kart": ["contactless payment phone", "online payment", "credit card phone"],
+    "instagram": ["vertical smartphone social media", "phone social media app", "person using instagram phone"],
+    "dm": ["phone messaging app", "smartphone chat app", "typing message phone"],
+    "mesaj": ["phone messaging app", "smartphone chat app", "typing message phone"],
+    "youtube": ["youtube creator setup", "vertical video recording phone", "content creator editing video"],
+    "shorts": ["vertical video recording phone", "content creator editing video", "smartphone video app"],
+    "capcut": ["mobile video editing", "creator editing video", "video editing timeline"],
+    "discord": ["gaming headset microphone", "gaming setup keyboard", "computer voice chat"],
+    "mikrofon": ["microphone headset gaming", "computer microphone setup", "voice chat headset"],
+    "xiaomi": ["android phone settings", "smartphone close up", "wifi router phone"],
+    "iphone": ["iphone charging cable", "iphone settings", "smartphone close up"],
+    "sarj": ["phone charging cable", "smartphone battery charging", "charging phone close up"],
+    "wifi": ["wifi router smartphone", "home wifi router", "phone wifi settings"],
+    "google play": ["android app store phone", "smartphone downloading app", "android phone app"],
+    "play store": ["android app store phone", "smartphone downloading app", "android phone app"],
+    "papara": ["mobile payment phone", "contactless payment phone", "online payment smartphone"],
+    "nays": ["mobile payment phone", "contactless payment phone", "online payment smartphone"],
+    "odeme": ["mobile payment phone", "contactless payment phone", "online payment smartphone"],
+    "kart": ["credit card smartphone", "contactless payment phone", "online payment smartphone"],
+    "valorant": ["gaming keyboard setup", "pc gaming setup", "esports gaming monitor"],
+    "hata": ["computer error screen", "phone error notification", "troubleshooting laptop"],
+    "acilmiyor": ["phone app error", "smartphone troubleshooting", "app loading phone"],
 }
 
 
@@ -40,15 +49,7 @@ class RenderedShort:
 
 
 class ShortVideoBuilder:
-    def __init__(
-        self,
-        pexels_api_key: str,
-        output_dir: Path | str,
-        font_dir: Path | str,
-        voice: str = "tr-TR-AhmetNeural",
-        voice_rate: str = "+8%",
-        voice_pitch: str = "-3Hz",
-    ):
+    def __init__(self, pexels_api_key: str, output_dir: Path | str, font_dir: Path | str, voice: str = "tr-TR-AhmetNeural", voice_rate: str = "+8%", voice_pitch: str = "-3Hz"):
         self.pexels_api_key = pexels_api_key
         self.output_dir = Path(output_dir)
         self.font_dir = Path(font_dir)
@@ -61,12 +62,10 @@ class ShortVideoBuilder:
         script = str(metadata.get("script") or "").strip()
         if not script:
             raise RuntimeError("Metadata icinde script bulunamadi.")
-
         self.output_dir.mkdir(parents=True, exist_ok=True)
         audio_path = self.output_dir / f"{slug}_voiceover.mp3"
         background_path = self.output_dir / f"{slug}_background.mp4"
         video_path = self.output_dir / f"{slug}.mp4"
-
         word_ts = asyncio.run(self.create_voiceover(script, audio_path))
         self.download_background_video(metadata, background_path)
         self.assemble_video(background_path, audio_path, video_path, word_ts)
@@ -74,7 +73,6 @@ class ShortVideoBuilder:
 
     async def create_voiceover(self, script: str, audio_path: Path) -> list[tuple[float, float, str]]:
         import edge_tts
-
         communicate = edge_tts.Communicate(script, self.voice, rate=self.voice_rate, pitch=self.voice_pitch)
         word_timestamps: list[tuple[float, float, str]] = []
         with open(audio_path, "wb") as file:
@@ -83,14 +81,11 @@ class ShortVideoBuilder:
                     file.write(chunk["data"])
                 elif chunk["type"] == "WordBoundary":
                     word_timestamps.append((chunk["offset"] / 10_000_000, chunk["duration"] / 10_000_000, chunk["text"]))
-
         if not audio_path.exists() or audio_path.stat().st_size == 0:
             raise RuntimeError("Ses dosyasi olusmadi.")
         if word_timestamps:
             return word_timestamps
-
         from moviepy.editor import AudioFileClip
-
         audio_clip = AudioFileClip(str(audio_path))
         total_duration = max(float(audio_clip.duration), 1.0)
         audio_clip.close()
@@ -112,21 +107,17 @@ class ShortVideoBuilder:
                 queries.extend(mapped)
         keywords = extract_keywords(text)
         if len(keywords) >= 2:
-            queries.append(f"{keywords[0]} {keywords[1]} tech")
+            queries.append(f"{keywords[0]} {keywords[1]} smartphone problem")
+            queries.append(f"{keywords[0]} {keywords[1]} troubleshooting")
         if keywords:
-            queries.append(f"{keywords[0]} phone problem")
-        queries.extend(["smartphone close up", "technology background", "phone app vertical"])
+            queries.append(f"{keywords[0]} mobile app problem")
+        queries.extend(["smartphone troubleshooting", "phone app vertical", "person using smartphone close up", "technology help desk"])
         return list(dict.fromkeys(queries))
 
     def search_pexels_video(self, query: str) -> str | None:
         headers = {"Authorization": self.pexels_api_key}
         try:
-            response = requests.get(
-                "https://api.pexels.com/videos/search",
-                headers=headers,
-                params={"query": query, "per_page": 10, "orientation": "portrait", "size": "large"},
-                timeout=20,
-            )
+            response = requests.get("https://api.pexels.com/videos/search", headers=headers, params={"query": query, "per_page": 10, "orientation": "portrait", "size": "large"}, timeout=20)
             response.raise_for_status()
             candidates: list[tuple[int, str]] = []
             for video in response.json().get("videos", []):
@@ -177,7 +168,6 @@ class ShortVideoBuilder:
     def assemble_video(self, background_path: Path, audio_path: Path, video_path: Path, word_ts: list[tuple[float, float, str]]) -> None:
         from moviepy.editor import AudioFileClip, CompositeVideoClip, TextClip, VideoFileClip
         from moviepy.video.fx.all import crop
-
         bg_clip = VideoFileClip(str(background_path))
         audio_clip = AudioFileClip(str(audio_path))
         target_duration = audio_clip.duration
@@ -191,30 +181,14 @@ class ShortVideoBuilder:
         bg_clip = bg_clip.resize(VIDEO_SIZE)
         bg_clip = bg_clip.loop(duration=target_duration) if bg_clip.duration < target_duration else bg_clip.subclip(0, target_duration)
         bg_clip = bg_clip.set_audio(audio_clip)
-
         font = self.ensure_font()
         captions = []
         for start, duration, text in chunk_timestamps(word_ts):
             text = clean_caption_text(text)
             if not text:
                 continue
-            caption = (
-                TextClip(
-                    text,
-                    fontsize=FONT_SIZE,
-                    color="white",
-                    font=font,
-                    stroke_color="black",
-                    stroke_width=STROKE_WIDTH,
-                    method="caption" if len(text) > 12 else "label",
-                    size=(VIDEO_SIZE[0] - 180, None),
-                )
-                .set_start(start)
-                .set_duration(duration)
-                .set_position(("center", "center"))
-            )
+            caption = TextClip(text, fontsize=FONT_SIZE, color="white", font=font, stroke_color="black", stroke_width=STROKE_WIDTH, method="caption" if len(text) > 12 else "label", size=(VIDEO_SIZE[0] - 180, None)).set_start(start).set_duration(duration).set_position(("center", "center"))
             captions.append(caption)
-
         final = CompositeVideoClip([bg_clip] + captions, size=VIDEO_SIZE)
         final.write_videofile(str(video_path), codec="libx264", audio_codec="aac", fps=30, preset="medium", threads=4, verbose=False, logger=None)
         final.close()
@@ -266,7 +240,6 @@ def chunk_timestamps(word_ts: list[tuple[float, float, str]]) -> list[tuple[floa
             chunk_end = word_end
     if current_words:
         chunks.append((chunk_start, max(chunk_end - chunk_start, 0.16), " ".join(current_words)))
-
     fixed: list[tuple[float, float, str]] = []
     for index, (start, duration, text) in enumerate(chunks):
         end = start + duration
