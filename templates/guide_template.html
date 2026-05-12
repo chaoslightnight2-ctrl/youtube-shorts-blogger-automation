@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; line-height: 1.72; color: #202124; background: #f6f8fb; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; background: #fff; }
+    h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 20px; color: #111827; }
+    h2 { font-size: 1.35rem; margin-top: 32px; padding-top: 8px; color: #1f2937; border-top: 1px solid #e5e7eb; }
+    h3 { font-size: 1.05rem; margin-top: 22px; color: #374151; }
+    p, li { font-size: 1rem; }
+    ul, ol { padding-left: 24px; }
+    .note { border-left: 4px solid #2563eb; background: #eff6ff; padding: 14px 16px; margin: 18px 0; border-radius: 6px; }
+    .check { border-left: 4px solid #16a34a; background: #f0fdf4; padding: 14px 16px; margin: 18px 0; border-radius: 6px; }
+    .warn { border-left: 4px solid #d97706; background: #fffbeb; padding: 14px 16px; margin: 18px 0; border-radius: 6px; }
+    .related { margin-top: 36px; padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="note"><strong>Kısa Cevap:</strong> Aşağıdaki adımlar sorunun en yaygın nedenlerini güvenli şekilde kontrol etmenize yardımcı olur.</div>
+    <!-- ADSENSE_SLOT_AFTER_INTRO -->
+    <div class="check"><strong>Hızlı Kontrol Listesi:</strong> Bağlantı, güncelleme, izinler, önbellek ve resmi destek adımlarını sırayla kontrol edin.</div>
+    {{ body | safe }}
+    <!-- ADSENSE_SLOT_MID_CONTENT -->
+    <div class="warn"><strong>Uyarı:</strong> Şifre, SMS kodu, kart bilgisi veya kişisel verilerinizi kimseyle paylaşmayın. Resmi uygulama ve yardım merkezleri dışındaki yönlendirmelere dikkat edin.</div>
+    <!-- ADSENSE_SLOT_BEFORE_FAQ -->
+    <section class="related">
+      <h2>İlgili rehberler yakında</h2>
+      <p>Benzer uygulama, telefon ve ödeme sorunları için yeni rehberler eklenecek.</p>
+    </section>
+  </main>
+</body>
+</html>

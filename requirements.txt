@@ -1,0 +1,14 @@
+python-dotenv
+pyyaml
+requests
+beautifulsoup4
+openai
+tenacity
+rapidfuzz
+python-slugify
+Jinja2
+pytest
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2

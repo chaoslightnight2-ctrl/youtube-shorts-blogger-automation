@@ -1,0 +1,34 @@
+country: "TR"
+language: "tr"
+lookback_hours: 24
+max_trends_to_collect: 50
+max_candidates_to_score: 15
+min_final_score: 65
+duplicate_similarity_threshold: 86
+recent_duplicate_days: 60
+outputs_dir: "outputs"
+blogger_publish_mode: "draft"
+default_labels:
+  - "Tech Çözüm"
+  - "1 Dakikada Çözüm"
+  - "Uygulama Hatası"
+allowed_categories:
+  - app_error
+  - payment_error
+  - phone_problem
+  - social_media_problem
+  - gaming_error
+  - youtube_creator_problem
+  - general_tech_problem
+blocked_categories:
+  - health
+  - legal
+  - politics
+  - disaster
+  - death
+  - adult
+  - gambling
+  - piracy
+  - hacking
+  - personal_data
+  - violence
