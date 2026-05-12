@@ -40,16 +40,17 @@ python main.py test-groq
 4. Application type olarak Desktop app seçin.
 5. `client_secret.json` dosyasını indirin ve repo köküne koyun.
 6. Blogger panelinden blog ID değerini alın ve `.env` içine `BLOGGER_BLOG_ID` olarak yazın.
-7. İlk çalıştırmada Google hesabınızla izin verin; `token.json` oluşur.
+7. Refresh token kullanacaksanız `.env` içine `GOOGLE_REFRESH_TOKEN` ekleyin. Bu modda sistem `client_secret.json` içindeki `client_id` ve `client_secret` ile access token yeniler; tarayıcı açıp `token.json` üretmesi gerekmez.
 
 ```env
 BLOGGER_BLOG_ID=your_blogger_blog_id_here
 GOOGLE_CLIENT_SECRET_FILE=client_secret.json
 GOOGLE_TOKEN_FILE=token.json
+GOOGLE_REFRESH_TOKEN=your_google_refresh_token_here
 BLOGGER_PUBLISH_MODE=draft
 ```
 
-`client_secret.json`, `token.json` ve `.env` git’e eklenmez.
+`GOOGLE_REFRESH_TOKEN` boş bırakılırsa eski lokal OAuth akışı çalışır ve gerekirse `token.json` üretir. `client_secret.json`, `token.json` ve `.env` git’e eklenmez.
 
 ## Komutlar
 
