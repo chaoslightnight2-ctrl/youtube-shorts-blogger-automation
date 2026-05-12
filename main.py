@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
+import json
 from pathlib import Path
 import sys
 
@@ -14,9 +16,11 @@ from src.html_renderer import HtmlRenderer
 from src.logger import setup_logger
 from src.safety_filter import SafetyFilter
 from src.short_script_writer import ShortScriptWriter
+from src.short_video_builder import ShortVideoBuilder
 from src.trend_ranker import TrendRanker
 from src.trend_sources import collect_trends
 from src.utils import ensure_dirs, make_slug, timestamp_for_filename, utc_now_iso, write_json
+from src.youtube_uploader import YouTubeUploader, metadata_to_youtube_fields
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -211,6 +215,57 @@ def check_duplicate(topic: str) -> None:
     print(f"duplicate={result.is_duplicate} similarity={result.similarity:.1f} matched={result.matched_problem} reason={result.reason}")
 
 
+def render_short(metadata_path: str, slug: str | None = None) -> int:
+    cfg, _logger, _db, _groq = build_services()
+    if not cfg.pexels_api_key:
+        print("PEXELS_API_KEY tanimli degil.")
+        return 1
+    metadata_file = Path(metadata_path)
+    metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+    output_slug = slug or make_slug(str(metadata.get("title") or metadata_file.stem))
+    builder = ShortVideoBuilder(
+        cfg.pexels_api_key,
+        BASE_DIR / cfg.outputs_dir / "videos",
+        BASE_DIR / "fonts",
+        voice=cfg.voice,
+        voice_rate=cfg.voice_rate,
+        voice_pitch=cfg.voice_pitch,
+    )
+    rendered = builder.render_from_metadata(metadata, output_slug)
+    print(f"Video: {rendered.video_path}")
+    print(f"Audio: {rendered.audio_path}")
+    print(f"Background: {rendered.background_path}")
+    return 0
+
+
+def upload_short(video_path: str, metadata_path: str, privacy_status: str = "private", publish_at: str | None = None) -> int:
+    cfg, _logger, _db, _groq = build_services()
+    if not cfg.youtube_refresh_token:
+        print("YOUTUBE_REFRESH_TOKEN veya GOOGLE_REFRESH_TOKEN tanimli degil.")
+        return 1
+    metadata = json.loads(Path(metadata_path).read_text(encoding="utf-8"))
+    title, description, tags = metadata_to_youtube_fields(metadata)
+    scheduled_at = datetime.fromisoformat(publish_at) if publish_at else None
+    uploader = YouTubeUploader(
+        cfg.google_client_secret_file,
+        cfg.youtube_refresh_token,
+        BASE_DIR,
+        category_id=cfg.youtube_category_id,
+    )
+    result = uploader.upload(
+        Path(video_path),
+        title=title,
+        description=description,
+        tags=tags,
+        privacy_status=privacy_status,
+        publish_at=scheduled_at,
+    )
+    print(f"YouTube upload tamamlandi: {result.youtube_url}")
+    if result.publish_at_utc:
+        print(f"PublishAt UTC: {result.publish_at_utc}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="YouTube Shorts + Blogger otomasyon sistemi")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -223,6 +278,14 @@ def main(argv: list[str] | None = None) -> int:
     dup.add_argument("topic")
     sub.add_parser("test-blogger-auth")
     sub.add_parser("test-groq")
+    render_p = sub.add_parser("render-short")
+    render_p.add_argument("--metadata", required=True)
+    render_p.add_argument("--slug")
+    upload_p = sub.add_parser("upload-short")
+    upload_p.add_argument("video_path")
+    upload_p.add_argument("--metadata", required=True)
+    upload_p.add_argument("--privacy", choices=["private", "unlisted", "public"], default="private")
+    upload_p.add_argument("--publish-at", help="ISO tarih/saat. Verilirse video private olarak zamanlanir.")
     args = parser.parse_args(argv)
     if args.command == "seed-demo":
         seed_demo()
@@ -239,6 +302,10 @@ def main(argv: list[str] | None = None) -> int:
         return test_blogger_auth()
     if args.command == "test-groq":
         return test_groq()
+    if args.command == "render-short":
+        return render_short(args.metadata, args.slug)
+    if args.command == "upload-short":
+        return upload_short(args.video_path, args.metadata, args.privacy, args.publish_at)
     return 1
 
 
