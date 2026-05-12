@@ -20,5 +20,5 @@ def test_background_queries_use_metadata_keywords():
 
     queries = builder.build_background_queries({"title": "Instagram mesaj gitmiyor", "script": "Telefon uygulama sorunu"})
 
-    assert "phone social media" in queries
-    assert "smartphone close up" in queries
+    assert "vertical smartphone social media" in queries
+    assert "smartphone troubleshooting" in queries
