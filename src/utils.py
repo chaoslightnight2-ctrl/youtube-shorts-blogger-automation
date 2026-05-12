@@ -22,7 +22,16 @@ def make_slug(text: str) -> str:
 
 
 def ensure_dirs(base_dir: Path, outputs_dir: str = "outputs") -> None:
-    for item in ["data", "logs", f"{outputs_dir}/guides", f"{outputs_dir}/scripts", f"{outputs_dir}/metadata", f"{outputs_dir}/blogger"]:
+    for item in [
+        "data",
+        "logs",
+        f"{outputs_dir}/guides",
+        f"{outputs_dir}/scripts",
+        f"{outputs_dir}/metadata",
+        f"{outputs_dir}/blogger",
+        f"{outputs_dir}/videos",
+        f"{outputs_dir}/youtube",
+    ]:
         (base_dir / item).mkdir(parents=True, exist_ok=True)
 
 
