@@ -1,0 +1,22 @@
+name: shorts_radar
+description: Dört YouTube kanalının son videolarını ve izlenmelerini takip et.
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.3.0
+  shared_preferences: ^2.5.0
+  url_launcher: ^6.3.1
+  intl: ^0.20.2
+  xml: ^6.6.1
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/initial_feed.json

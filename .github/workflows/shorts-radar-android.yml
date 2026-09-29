@@ -1,0 +1,64 @@
+name: Shorts Radar Android
+
+on:
+  push:
+    branches: [codex/shorts-radar]
+    paths: ['shorts-radar/**', '.github/workflows/shorts-radar-android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shorts-radar-release
+  cancel-in-progress: false
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: shorts-radar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+          cache: true
+      - name: Complete generated platform files
+        run: flutter create --platforms=android --org com.chaoslightnight --project-name shorts_radar .
+      - name: Analyze and test
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+      - name: Build installable APK
+        run: flutter build apk --release
+      - name: Package release
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/shorts-radar-1.0.0.apk
+          cd dist
+          sha256sum shorts-radar-1.0.0.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shorts-radar-android
+          path: shorts-radar/dist/*
+          retention-days: 30
+      - name: Publish APK download
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          if gh release view shorts-radar-v1.0.0 >/dev/null 2>&1; then
+            echo 'Release already exists. Use a new version for changes.'
+            exit 1
+          fi
+          gh release create shorts-radar-v1.0.0 dist/shorts-radar-1.0.0.apk dist/SHA256SUMS.txt --target "$RELEASE_COMMIT" --title 'Shorts Radar 1.0.0 — Android' --notes-file RELEASE_NOTES.md
